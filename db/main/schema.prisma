@@ -1,0 +1,219 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================
+// ========== MODELS ==========
+// ============================
+
+// ============================
+// ========== MODELS ==========
+// ============================
+
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  password    String
+  firstName   String
+  lastName    String
+  phone       String?
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  roleId      Int
+  role        Role     @relation(fields: [roleId], references: [id])
+
+  orders      Order[]
+  reviews     Review[]
+  cartItems   CartItem[]
+  articles    Article[]   @relation("ArticleAuthor")
+
+  // New relation connections
+  createdProducts  Product[]  @relation("CreatedProducts")
+  updatedProducts  Product[]  @relation("UpdatedProducts")
+  createdCategories Category[] @relation("CreatedCategories")
+  updatedCategories Category[] @relation("UpdatedCategories")
+  createdArticles   Article[]  @relation("CreatedArticles")
+  updatedArticles   Article[]  @relation("UpdatedArticles")
+}
+
+// ---------- Role & Permissions ----------
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name            String            @unique
+  description     String?
+
+  users           User[]
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  description     String?
+
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  id            Int      @id @default(autoincrement())
+  roleId        Int
+  permissionId  String
+
+  role          Role       @relation(fields: [roleId], references: [id])
+  permission    Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
+}
+
+// ---------- E-commerce ----------
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  stock       Int
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  // createdBy / updatedBy relations
+  createdById Int?
+  updatedById Int?
+  createdBy   User?    @relation("CreatedProducts", fields: [createdById], references: [id])
+  updatedBy   User?    @relation("UpdatedProducts", fields: [updatedById], references: [id])
+
+  reviews     Review[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  // createdBy / updatedBy relations
+  createdById Int?
+  updatedById Int?
+  createdBy   User?    @relation("CreatedCategories", fields: [createdById], references: [id])
+  updatedBy   User?    @relation("UpdatedCategories", fields: [updatedById], references: [id])
+
+  products    Product[]
+  articles    Article[] @relation("ArticleCategory")
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  totalAmount Float
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id          Int      @id @default(autoincrement())
+  orderId     Int
+  productId   Int
+  quantity    Int
+  price       Float
+
+  order       Order      @relation(fields: [orderId], references: [id])
+  product     Product    @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  productId   Int
+  rating      Int
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  product     Product  @relation(fields: [productId], references: [id])
+}
+
+model CartItem {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  productId   Int
+  quantity    Int       @default(1)
+
+  user        User      @relation(fields: [userId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
+}
+
+// ---------- Articles & Content ----------
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  content     String
+  coverImage  String?
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  authorId    Int
+  author      User      @relation("ArticleAuthor", fields: [authorId], references: [id])
+
+  categoryId  Int?
+  category    Category? @relation("ArticleCategory", fields: [categoryId], references: [id])
+
+  // createdBy / updatedBy relations
+  createdById Int?
+  updatedById Int?
+  createdBy   User?     @relation("CreatedArticles", fields: [createdById], references: [id])
+  updatedBy   User?     @relation("UpdatedArticles", fields: [updatedById], references: [id])
+
+  tags        ArticleTag[]
+}
+
+model Tag {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+
+  articleTags ArticleTag[]
+}
+
+model ArticleTag {
+  id          Int      @id @default(autoincrement())
+  articleId   Int
+  tagId       Int
+
+  article     Article @relation(fields: [articleId], references: [id])
+  tag         Tag     @relation(fields: [tagId], references: [id])
+
+  @@unique([articleId, tagId])
+}
+
+// ---------- Enums ----------
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
