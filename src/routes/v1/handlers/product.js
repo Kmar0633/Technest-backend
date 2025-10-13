@@ -5,14 +5,29 @@ const { main } = db;
 
 const get = async (req, res, next) => {
   try {
-    const product = await main.product.findMany({
 
-    });
+     const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+   const [products, totalItems] = await Promise.all([
+      main.product.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" }, // optional
+      }),
+      main.product.count(),
+    ]);
 
-    return res.json({
-      status: 200,
-      message: "get Products succesfully",
-      data: product,
+    const totalPages = Math.ceil(totalItems / limit);
+      res.status(200).json({
+      success: true,
+      data: products,
+      pagination: {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+      },
     });
   } catch (e) {
     console.log(e);
