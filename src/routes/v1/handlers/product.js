@@ -53,6 +53,29 @@ const get = async (req, res, next) => {
 };
 
 
+const getProductDetail = async (req, res, next) => {
+  try {
+
+   const productId = req.id
+    const product = await Promise.all([
+      main.product.findFirst({
+        where: {
+          id: productId
+        }
+      }),
+    ]);
+
+    res.status(200).json({
+      data: product,
+      message: "Product successfully retrieved",
+    });
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+};
+
 export default {
   get,
+  getProductDetail
 };
