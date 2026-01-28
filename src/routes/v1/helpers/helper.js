@@ -1,6 +1,6 @@
 
 import crypto from "crypto";
-
+import jwt from "jsonwebtoken";
 const decodeText = (text) => {
   const encryptionKey = process.env.ENCRYPT_KEY;
   const cipherBytes = Buffer.from(text, "base64");
@@ -41,8 +41,25 @@ const encryptText = (text) => {
   
     return encrypted.toString('base64');
   };
+
+
+const generateAccessToken = (userId) =>
+  jwt.sign(
+    { userId },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+
+const generateRefreshToken = (userId) =>
+  jwt.sign(
+    { userId },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
   
 export default {
   decodeText,
-  encryptText
+  encryptText,
+  generateAccessToken,
+  generateRefreshToken
 }
