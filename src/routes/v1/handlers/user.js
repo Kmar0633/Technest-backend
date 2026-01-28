@@ -1,13 +1,14 @@
 import db from "../../../../db/db.js";
 import helper from "../helpers/helper.js";
 import config from "../../../../config/config.js";
+import { UserType } from "@prisma/client";
 const { main } = db;
 
 const register = async (req, res, next) => {
     try {
    console.log("test")
         const { firstName, lastName, email, password, phone } = req.body
-        const userData = { firstName, lastName, email, password: helper.encryptText(password), phone }
+        const userData = { firstName, lastName, email, password: helper.encryptText(password), phone,userType:UserType.USER }
 
         const findUser = await main.user.findUnique({ where: { email } });
 
@@ -38,7 +39,8 @@ const register = async (req, res, next) => {
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                phone:user.phone
+                phone:user.phone,
+                userType:user.userType
             },
             message: "Account created successfully",
         });
