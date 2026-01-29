@@ -9,6 +9,8 @@ router.get("/products",product.get)
 router.get("/productDetail/:id",product.getProductDetail)
 router.get("/categories",category.get)
 router.post("/auth/register",user.register)
+router.get("/user/profile",user.getUser)
 router.post("/auth/refresh",auth.refreshToken)
 router.post("/auth/logout",auth.logout)
+router.post("/auth/login",user.login)
 export default router;

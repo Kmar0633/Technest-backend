@@ -6,7 +6,6 @@ const { main } = db;
 
 const register = async (req, res, next) => {
     try {
-   console.log("test")
         const { firstName, lastName, email, password, phone } = req.body
         const userData = { firstName, lastName, email, password: helper.encryptText(password), phone,userType:UserType.USER }
 
@@ -56,6 +55,73 @@ const register = async (req, res, next) => {
 };
 
 
+const getUser = async (req, res, next) => {
+    try {
+       const userId = req.user.id; // from JWT middleware
+    const user = await main.user.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({  message: "User not found" });
+    }
+
+    res.json({ status: "success", data: user });
+    } catch (e) {
+        console.log(e)
+        if (error.code === "P2002") {
+            return res.status(409).json({
+                message: "Email already exists",
+            });
+        }
+        next(e);
+    }
+};
+
+const login = async (req, res, next) => {
+    try {
+
+        const { email, password } = req.body
+
+        const user = await main.user.findUnique({ where: { email } });
+
+        if (!user || user?.password != helper.encryptText(password)) {
+      
+            return res.status(401).json({ message: "Invalid Email or Password" })
+        }
+       
+        const accessToken = helper.generateAccessToken(user.id);
+        const refreshToken = helper.generateRefreshToken(user.id);
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            path: "/auth/refresh",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+     
+        return res.status(201).json({
+            accessToken,
+            user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phone:user.phone,
+                userType:user.userType
+            },
+            message: "Successfully Logged In",
+        });
+    } catch (e) {
+        console.log(e)
+        
+        next(e);
+    }
+};
+
+
+
 export default {
     register,
+    login,
+    getUser
 };

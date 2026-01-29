@@ -7,7 +7,10 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(express.json({ limit: "50mb" }));
-app.use(cors());
+app.use(cors({
+    origin: "http://localhost:5173", // your frontend URL
+    credentials: true,
+  }));
 app.use(cookieParser());
 
 app.get("/technest-backend", async (req, res) => {
