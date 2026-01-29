@@ -2,17 +2,18 @@ import db from "../../../../db/db.js";
 import helper from "../helpers/helper.js";
 import config from "../../../../config/config.js";
 import { UserType } from "@prisma/client";
+import jwt from "jsonwebtoken"
 const { main } = db;
 
 const register = async (req, res, next) => {
     try {
         const { firstName, lastName, email, password, phone } = req.body
-        const userData = { firstName, lastName, email, password: helper.encryptText(password), phone,userType:UserType.USER }
+        const userData = { firstName, lastName, email, password: helper.encryptText(password), phone, userType: UserType.USER }
 
         const findUser = await main.user.findUnique({ where: { email } });
 
         if (findUser) {
-      
+
             return res.status(401).json({ message: "Email already exists" })
         }
         const user = await main.user.create({
@@ -30,7 +31,7 @@ const register = async (req, res, next) => {
             path: "/auth/refresh",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
-     
+
         return res.status(201).json({
             accessToken,
             user: {
@@ -38,8 +39,8 @@ const register = async (req, res, next) => {
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                phone:user.phone,
-                userType:user.userType
+                phone: user.phone,
+                userType: user.userType
             },
             message: "Account created successfully",
         });
@@ -57,14 +58,14 @@ const register = async (req, res, next) => {
 
 const getUser = async (req, res, next) => {
     try {
-       const userId = req.user.id; // from JWT middleware
-    const user = await main.user.findById(userId);
+        const payload= helper.verifyBearerToken(req.headers.authorization)
+        console.log("payload",payload)
+        const user = await main.user.findUnique({ where: { id: payload?.userId} });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-    if (!user) {
-      return res.status(404).json({  message: "User not found" });
-    }
-
-    res.json({ status: "success", data: user });
+        res.json({ status: "success", data: user });
     } catch (e) {
         console.log(e)
         if (error.code === "P2002") {
@@ -84,10 +85,10 @@ const login = async (req, res, next) => {
         const user = await main.user.findUnique({ where: { email } });
 
         if (!user || user?.password != helper.encryptText(password)) {
-      
+
             return res.status(401).json({ message: "Invalid Email or Password" })
         }
-       
+
         const accessToken = helper.generateAccessToken(user.id);
         const refreshToken = helper.generateRefreshToken(user.id);
 
@@ -98,7 +99,7 @@ const login = async (req, res, next) => {
             path: "/auth/refresh",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
-     
+
         return res.status(201).json({
             accessToken,
             user: {
@@ -106,14 +107,14 @@ const login = async (req, res, next) => {
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                phone:user.phone,
-                userType:user.userType
+                phone: user.phone,
+                userType: user.userType
             },
             message: "Successfully Logged In",
         });
     } catch (e) {
         console.log(e)
-        
+
         next(e);
     }
 };

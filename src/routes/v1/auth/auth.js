@@ -5,7 +5,6 @@ const refreshToken = (req, res) => {
   try{
   const token = req.cookies.refreshToken;
   if (!token) return res.sendStatus(401);
-  console.log(token)
   jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, payload) => {
     if (err) return res.sendStatus(403);
 
