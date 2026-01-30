@@ -26,8 +26,8 @@ const register = async (req, res, next) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: "strict",
+            secure: false,
+            sameSite: "lax",
             path: "/auth/refresh",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -58,9 +58,9 @@ const register = async (req, res, next) => {
 
 const getUser = async (req, res, next) => {
     try {
-        const payload= helper.verifyBearerToken(req.headers.authorization)
-        console.log("payload",payload)
-        const user = await main.user.findUnique({ where: { id: payload?.userId} });
+        const payload = helper.verifyBearerToken(req.headers.authorization, res)
+        console.log("payload", payload)
+        const user = await main.user.findUnique({ where: { id: payload?.userId } });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -76,6 +76,29 @@ const getUser = async (req, res, next) => {
         next(e);
     }
 };
+
+const saveUser = async (req, res, next) => {
+    try {
+        const payload = helper.verifyBearerToken(req.headers.authorization, res)
+        console.log("payload", payload)
+        const reqBody = req.body;
+        const user = await main.user.findUnique({ where: { id: payload?.userId } });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const updatedUser = await main.user.update({
+            where: { id: payload?.userId },
+            data: reqBody,
+        });
+        res.json({ status: "success", data: updatedUser });
+    } catch (e) {
+        console.log(e)
+        next(e);
+    }
+};
+
+
 
 const login = async (req, res, next) => {
     try {
@@ -94,8 +117,8 @@ const login = async (req, res, next) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: "strict",
+            secure: false,
+            sameSite: "lax",
             path: "/auth/refresh",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -124,5 +147,6 @@ const login = async (req, res, next) => {
 export default {
     register,
     login,
+    saveUser,
     getUser
 };

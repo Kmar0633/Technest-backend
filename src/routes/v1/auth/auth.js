@@ -24,8 +24,8 @@ const logout = (req, res) => {
   res.clearCookie("refreshToken", {
     path: "/auth/refresh",
     httpOnly: true,
-    sameSite: "strict",
-    secure: true,
+    sameSite: "lax",
+    secure: false,
   });
 
   return res.status(200).json({

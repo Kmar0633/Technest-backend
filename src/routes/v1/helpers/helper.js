@@ -57,7 +57,11 @@ const generateRefreshToken = (userId) =>
     { expiresIn: "7d" }
   );
 
-const verifyBearerToken = (authHeader) => {
+const verifyBearerToken = (authHeader,res) => {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Missing or invalid Authorization header" });
+  }
+
   const token = authHeader.split(" ")[1];
   const payload = jwt.verify(token, process.env.JWT_SECRET);
   return payload;
