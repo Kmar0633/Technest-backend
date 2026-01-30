@@ -27,7 +27,7 @@ const register = async (req, res, next) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: false,
-            sameSite: "lax",
+            sameSite:"none",
             path: "/auth/refresh",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -59,7 +59,7 @@ const register = async (req, res, next) => {
 const getUser = async (req, res, next) => {
     try {
         const payload = helper.verifyBearerToken(req.headers.authorization, res)
-        console.log("payload", payload)
+
         const user = await main.user.findUnique({ where: { id: payload?.userId } });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -79,8 +79,9 @@ const getUser = async (req, res, next) => {
 
 const saveUser = async (req, res, next) => {
     try {
+     
         const payload = helper.verifyBearerToken(req.headers.authorization, res)
-        console.log("payload", payload)
+
         const reqBody = req.body;
         const user = await main.user.findUnique({ where: { id: payload?.userId } });
         if (!user) {
@@ -118,7 +119,7 @@ const login = async (req, res, next) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: false,
-            sameSite: "lax",
+            sameSite: "none",
             path: "/auth/refresh",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });

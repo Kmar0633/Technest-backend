@@ -8,9 +8,7 @@ const refreshToken = (req, res) => {
   jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, payload) => {
     if (err) return res.sendStatus(403);
 
-    const accessToken = helper.createAccessToken({
-      userId: payload.userId,
-    });
+    const accessToken = helper.generateAccessToken(payload.userId);
 
     res.json({ accessToken });
   });
@@ -24,7 +22,7 @@ const logout = (req, res) => {
   res.clearCookie("refreshToken", {
     path: "/auth/refresh",
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
     secure: false,
   });
 

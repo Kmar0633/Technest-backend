@@ -90,7 +90,7 @@ const getProductDetail = async (req, res, next) => {
         }
       }),
     ]);
-console.log(product)
+
     res.status(200).json({
       data: product,
       message: "Product successfully retrieved",
