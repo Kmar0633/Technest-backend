@@ -27,8 +27,8 @@ const register = async (req, res, next) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: false,
-            sameSite:"none",
-            path: "/auth/refresh",
+      sameSite: "lax", 
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
@@ -119,8 +119,8 @@ const login = async (req, res, next) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: false,
-            sameSite: "none",
-            path: "/auth/refresh",
+             sameSite: "lax", 
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
@@ -143,11 +143,34 @@ const login = async (req, res, next) => {
     }
 };
 
+const logout = async (req, res, next) => {
+    try {
+        console.log("test")
+       
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax", 
+            path: "/",
+        });
+
+        return res.status(201).json({
+         
+            message: "Successfully Logged Out",
+        });
+    } catch (e) {
+        console.log(e)
+
+        next(e);
+    }
+};
 
 
 export default {
     register,
     login,
     saveUser,
+    logout,
     getUser
 };

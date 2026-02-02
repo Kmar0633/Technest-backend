@@ -3,6 +3,7 @@ import product from "./handlers/product.js";
 import category from "./handlers/category.js";
 import user from "./handlers/user.js";
 import auth from "./auth/auth.js";
+
 const router = express.Router();
 
 router.get("/products",product.get)
@@ -12,6 +13,6 @@ router.post("/auth/register",user.register)
 router.get("/user/profile",user.getUser)
 router.post("/users/me",user.saveUser)
 router.post("/auth/refresh",auth.refreshToken)
-router.post("/auth/logout",auth.logout)
+router.post("/auth/logout",user.logout)
 router.post("/auth/login",user.login)
 export default router;

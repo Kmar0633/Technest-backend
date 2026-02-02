@@ -19,11 +19,13 @@ catch(e){
 }
 
 const logout = (req, res) => {
+  console.log("TLogout")
   res.clearCookie("refreshToken", {
-    path: "/auth/refresh",
+    path: "/",
     httpOnly: true,
-    sameSite: "none",
+     sameSite: "lax", 
     secure: false,
+     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   return res.status(200).json({
