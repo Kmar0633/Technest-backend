@@ -8,7 +8,7 @@ const { main } = db;
 const register = async (req, res, next) => {
     try {
         const { firstName, lastName, email, password, phone } = req.body
-        const userData = { firstName, lastName, email, password: helper.encryptText(password), phone, userType: UserType.USER }
+        const userData = { firstName:firstName, lastName, email, password: helper.encryptText(password), phone, userType: UserType.USER }
 
         const findUser = await main.user.findUnique({ where: { email } });
 
